@@ -12,7 +12,9 @@
  * than some percentage of face_start_distance). This starts with a default value
  * and gets updated once the tracking algorithm starts running.
  */
-var face_start_distance = -1; //estimated in centimeters
+var avg_face_start_width = -1; //estimated in centimeters
+var start_cntr = 0;
+var face_couts = 15;
 
 statusMessages = {
     "whitebalance": "checking for stability of camera whitebalance",
@@ -45,23 +47,39 @@ document.addEventListener("headtrackrStatus", function(event) {
 }, true);
 
 document.addEventListener("facetrackingEvent", function(event) {
-    //get video
-    var videoInput = document.getElementById('inputCanvas');
-    //calculate ratio of current user face size compared to window size
-    var faceWidth = event.width,
-            videoWidth = videoInput.width,
-            face2canvasRatio = videoWidth / faceWidth;
-    //display user face distance ratio
-    document.getElementById("calc-messages").innerText = "Face width: " + faceWidth + ", Video width: " + videoWidth + ", face2canvasRatio: " + face2canvasRatio + ", Zoom factor: " + currentZoomFactor;
-    //determine if threshold for action has been met
-    if (face2canvasRatio > 3.6) {
-        //users face has moved farther from camera, start zooming out
-        xoomer(-0.025, document.getElementById("videoDiv"));
-    } else if (face2canvasRatio < 2.51) {
-        //users face has moved closer to camera, start zooming in
-        xoomer(0.025, document.getElementById("videoDiv"));
+    //check if we need to initialize the starting distance between users face and camera
+    if (start_cntr < face_couts) {
+        avg_face_start_width += event.width;
+        start_cntr++;
+    } else if (start_cntr === face_couts) {
+        avg_face_start_width = (avg_face_start_width / face_couts);
+        start_cntr++;
+    } else {
+        //calculate ratio of current user face size compared to starting face size size
+        var faceWidthRatio = event.width / avg_face_start_width;
+        //determine if threshold for action has been met
+        if (faceWidthRatio < 0.92) {
+            //users face has moved farther from camera, start zooming out
+            xoomer(-0.05, document.getElementById("videoDiv"));
+            //display user face distance ratio
+            document.getElementById("calc-messages").innerText = "Zooming out! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+        } else if (faceWidthRatio > 1.15) {
+            //users face has moved closer to camera, start zooming in
+            xoomer(0.05, document.getElementById("videoDiv"));
+            //display user face distance ratio
+            document.getElementById("calc-messages").innerText = "Zooming in! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+        } else {
+            //display user face distance ratio
+            document.getElementById("calc-messages").innerText = "Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+        }
     }
+
 }, true);
+
+function resetAvgFaceWidth(){
+    start_cntr = 0;
+    avg_face_start_width = 0;
+}
 
 //document.addEventListener("headtrackingEvent", function(event) {
 //    //check if we need to initialize the starting distance between users face and camera

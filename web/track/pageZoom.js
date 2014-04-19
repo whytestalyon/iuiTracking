@@ -3,6 +3,7 @@
  * @type Number
  */
 var currentZoomFactor = 1.0;
+var minZoomFactor = 0.5;
 
 /**
  * Function for increasing/decreasing the page level zoom. Also 
@@ -11,10 +12,24 @@ var currentZoomFactor = 1.0;
  * @returns {undefined} none
  */
 function xoomer(zoom_factor_increment, non_zoom_elm) {
+    //calculate new zoom factor
     currentZoomFactor += zoom_factor_increment;
-    document.body.style.zoom = currentZoomFactor;
-    if (typeof non_zoom_elm != "undefined") {
-        non_zoom_elm.style.zoom = 1 / currentZoomFactor;
+    if (currentZoomFactor < minZoomFactor) {
+        currentZoomFactor -= zoom_factor_increment;
+        return false;
     }
+    //update zoom factor based on type of zoom support in browser
+    if (Modernizr.zoom) {
+        document.body.style.zoom = currentZoomFactor;
+        if (typeof non_zoom_elm != "undefined") {
+            non_zoom_elm.style.zoom = 1 / currentZoomFactor;
+        }
+    } else {
+        document.body.style = "-o-transform: scale(" + currentZoomFactor + ");-moz-transform: scale(" + currentZoomFactor + ");transform: scale(" + currentZoomFactor + ");";
+        if (typeof non_zoom_elm != "undefined") {
+            non_zoom_elm.style = "-o-transform: scale(" + (1 / currentZoomFactor) + ");-moz-transform: scale(" + (1 / currentZoomFactor) + ");transform: scale(" + (1 / currentZoomFactor) + ");";
+        }
+    }
+    return true;
 }
 

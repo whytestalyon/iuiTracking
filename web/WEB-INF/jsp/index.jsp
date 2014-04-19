@@ -2,17 +2,33 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
 
-<html>
+<html class="no-js">
     <head>
 
         <title>tracking.js - Human Frontal Eye</title>
 
         <meta charset="utf-8">
-
+        <script src="/TrackingIUI/track/modernizr.js"></script>
+        <script>
+            Modernizr.addTest('zoom', function() {
+                //create a div
+                var test = document.createElement('div');
+                //if there's a valid property in the browser
+                //it will return ""
+                //undefined means the browser doesn't know
+                //what you're talking about
+                if (test.style.zoom === undefined) {
+                    delete test;
+                    return false;
+                }
+                delete test;
+                return true;
+            });
+        </script>
         <script src="/TrackingIUI/track/headtrackr.js"></script>
         <script src="/TrackingIUI/track/trackStatus.js"></script>
         <script src="/TrackingIUI/track/pageZoom.js"></script>
-
+        
     </head>
     <body>
         <div id="contentDiv">
@@ -29,7 +45,7 @@
             var videoInput = document.getElementById('inputVideo');
             var canvasInput = document.getElementById('inputCanvas');
 
-            var htracker = new headtrackr.Tracker();
+            var htracker = new headtrackr.Tracker({calcAngles: true});
             console.log('Starting the tracker...');
             htracker.init(videoInput, canvasInput);
             htracker.start();
@@ -39,7 +55,8 @@
             <p>Status : <span id="headtracker-message"></span></p> 
             <p>
                 <input type="button" onclick="htracker.stop();
-            htracker.start();" value=" Reload Face Detection " />
+                htracker.start();" value=" Reload Face Detection " />
+                <input type="button" onclick="resetAvgFaceWidth();" value=" Readjust Face Detection " />
             </p>
             <p id="calc-messages"></p>
         </div>

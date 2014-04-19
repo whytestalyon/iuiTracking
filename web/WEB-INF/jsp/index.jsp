@@ -9,50 +9,39 @@
 
         <meta charset="utf-8">
 
-        <script src="/TrackingIUI/eye_tracker/tracking.min.js"></script>
-        <script src="/TrackingIUI/eye_tracker/tracker/human/human.min.js"></script>
-        <script src="/TrackingIUI/eye_tracker/tracker/human/data/eye.min.js"></script>
-
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-            }
-            canvas {
-                -moz-transform: scale(-1, 1);
-                -o-transform: scale(-1, 1);
-                -webkit-transform: scale(-1, 1);
-                filter: FlipH;
-                transform: scale(-1, 1);
-            }
-        </style>
+        <script src="/TrackingIUI/track/headtrackr.js"></script>
+        <script src="/TrackingIUI/track/trackStatus.js"></script>
+        <script src="/TrackingIUI/track/pageZoom.js"></script>
 
     </head>
     <body>
-
-        <script>
+        <div id="contentDiv">
+            <h1>Heading 1</h1>
+            <p>Some text to fill the page and test zooming.</p>
+            <h3>Heading 3</h3>
+        </div>
+        <div id="videoDiv">
+            <canvas id="inputCanvas" width="320" height="240" style="display:none"></canvas>
+            <video id="inputVideo" autoplay loop></video>
+        </div>
+        <script type="text/javascript">
             console.log('Initializing the tracker and canvas...');
-            //Gets the user's camera
-            var videoCamera = new tracking.VideoCamera().hide().render().renderVideoCanvas(),
-                    ctx = videoCamera.canvas.context;
-            console.log('Starting the tracker...');
-            videoCamera.track({
-                type: 'human',
-                data: 'eye',
-                onFound: function(track) {
-                    for (var i = 0, len = track.length; i < len; i++) {
-                        var rect = track[i];
-                        console.log("x: "+rect.x+", y: "+rect.y+", size: "+rect.size);
-                        ctx.strokeStyle = "rgb(0,255,0)";
-                        ctx.strokeRect(rect.x, rect.y, rect.size, rect.size);
-                    }
-                },
-                onNotFound: function(track) {
-                    console.log("Couldn't find the eye yet!");
-                    console.log(track);
-                }
-            });
-        </script>
+            var videoInput = document.getElementById('inputVideo');
+            var canvasInput = document.getElementById('inputCanvas');
 
+            var htracker = new headtrackr.Tracker();
+            console.log('Starting the tracker...');
+            htracker.init(videoInput, canvasInput);
+            htracker.start();
+        </script>
+        <div id="console">
+            <p id="support-message"></p> 
+            <p>Status : <span id="headtracker-message"></span></p> 
+            <p>
+                <input type="button" onclick="htracker.stop();
+            htracker.start();" value=" Reload Face Detection " />
+            </p>
+            <p id="calc-messages"></p>
+        </div>
     </body>
 </html>

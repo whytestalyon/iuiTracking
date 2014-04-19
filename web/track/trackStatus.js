@@ -12,8 +12,7 @@
  * than some percentage of face_start_distance). This starts with a default value
  * and gets updated once the tracking algorithm starts running.
  */
-var face_start_distance = 60; //estimated in centimeters
-var face_tracked = false; //indicates if tracking started or not
+var face_start_distance = -1; //estimated in centimeters
 
 statusMessages = {
     "whitebalance": "checking for stability of camera whitebalance",
@@ -37,10 +36,6 @@ supportMessages = {
  */
 document.addEventListener("headtrackrStatus", function(event) {
     if (event.status in supportMessages) {
-        //check if tracking has started
-        if (!face_tracked && event.status === 'found') {
-            face_tracked = true;
-        }
         var messagep = document.getElementById('support-message');
         messagep.innerHTML = supportMessages[event.status];
     } else if (event.status in statusMessages) {
@@ -49,17 +44,42 @@ document.addEventListener("headtrackrStatus", function(event) {
     }
 }, true);
 
-document.addEventListener("headtrackingEvent", function(event) {
-    if (event.status in supportMessages) {
-        //check if tracking has started
-        if (!face_tracked && event.status === 'found') {
-            face_tracked = true;
-        }
-        var messagep = document.getElementById('support-message');
-        messagep.innerHTML = supportMessages[event.status];
-    } else if (event.status in statusMessages) {
-        var messagep = document.getElementById('headtracker-message');
-        messagep.innerHTML = statusMessages[event.status];
+document.addEventListener("facetrackingEvent", function(event) {
+    //get video
+    var videoInput = document.getElementById('inputCanvas');
+    //calculate ratio of current user face size compared to window size
+    var faceWidth = event.width,
+            videoWidth = videoInput.width,
+            face2canvasRatio = videoWidth / faceWidth;
+    //display user face distance ratio
+    document.getElementById("calc-messages").innerText = "Face width: " + faceWidth + ", Video width: " + videoWidth + ", face2canvasRatio: " + face2canvasRatio + ", Zoom factor: " + currentZoomFactor;
+    //determine if threshold for action has been met
+    if (face2canvasRatio > 3.6) {
+        //users face has moved farther from camera, start zooming out
+        xoomer(-0.025, document.getElementById("videoDiv"));
+    } else if (face2canvasRatio < 2.51) {
+        //users face has moved closer to camera, start zooming in
+        xoomer(0.025, document.getElementById("videoDiv"));
     }
 }, true);
+
+//document.addEventListener("headtrackingEvent", function(event) {
+//    //check if we need to initialize the starting distance between users face and camera
+//    if (face_start_distance === -1) {
+//        face_start_distance = event.z;
+//    }
+//    //calculate ratio of current user distance from camera to original user
+//    //distance from camera
+//    var distanceRatio = event.z / face_start_distance;
+//    //display user face distance ratio
+//    document.getElementById("calc-messages").innerText = "Z-distace: " + event.z + ", Distance Ratio: " + distanceRatio + ", Zoom factor: " + currentZoomFactor;
+//    //determine if threshold for action has been met
+//    if (distanceRatio > 1.1) {
+//        //users face has moved farther from camera, start zooming out
+//        xoomer(-0.025, document.getElementById("videoDiv"));
+//    } else if (distanceRatio < 0.7) {
+//        //users face has moved closer to camera, start zooming in
+//        xoomer(0.025, document.getElementById("videoDiv"));
+//    }
+//}, true);
 

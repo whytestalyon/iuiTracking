@@ -11,7 +11,7 @@ var minZoomFactor = 0.5;
  * @param {DOM element} non_zoom_elm optional element to prevent from zooming
  * @returns {undefined} none
  */
-function xoomer(zoom_factor_increment, non_zoom_elm) {
+function xoomer(zoom_factor_increment, zoom_elm, non_zoom_elm) {
     //calculate new zoom factor
     currentZoomFactor += zoom_factor_increment;
     if (currentZoomFactor < minZoomFactor) {
@@ -20,12 +20,12 @@ function xoomer(zoom_factor_increment, non_zoom_elm) {
     }
     //update zoom factor based on type of zoom support in browser
     if (Modernizr.zoom) {
-        document.body.style.zoom = currentZoomFactor;
+        zoom_elm.style.zoom = currentZoomFactor;
         if (typeof non_zoom_elm != "undefined") {
             non_zoom_elm.style.zoom = 1 / currentZoomFactor;
         }
     } else {
-        document.body.style = "-o-transform: scale(" + currentZoomFactor + ");-moz-transform: scale(" + currentZoomFactor + ");transform: scale(" + currentZoomFactor + ");";
+        zoom_elm.style = "-o-transform: scale(" + currentZoomFactor + ");-moz-transform: scale(" + currentZoomFactor + ");transform: scale(" + currentZoomFactor + ");";
         if (typeof non_zoom_elm != "undefined") {
             non_zoom_elm.style = "-o-transform: scale(" + (1 / currentZoomFactor) + ");-moz-transform: scale(" + (1 / currentZoomFactor) + ");transform: scale(" + (1 / currentZoomFactor) + ");";
         }

@@ -55,17 +55,20 @@ document.addEventListener("facetrackingEvent", function(event) {
         avg_face_start_width = (avg_face_start_width / face_couts);
         start_cntr++;
     } else {
+        //get iframe information
+        var iframe = document.getElementById('navFrame');
+        var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
         //calculate ratio of current user face size compared to starting face size size
         var faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
         if (faceWidthRatio < 0.92) {
             //users face has moved farther from camera, start zooming out
-            xoomer(-0.05, document.getElementById("videoDiv"));
+            xoomer(-0.05, innerDoc.body, null);
             //display user face distance ratio
             document.getElementById("calc-messages").innerText = "Zooming out! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
         } else if (faceWidthRatio > 1.15) {
             //users face has moved closer to camera, start zooming in
-            xoomer(0.05, document.getElementById("videoDiv"));
+            xoomer(0.05, innerDoc.body, null);
             //display user face distance ratio
             document.getElementById("calc-messages").innerText = "Zooming in! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
         } else {
@@ -76,7 +79,7 @@ document.addEventListener("facetrackingEvent", function(event) {
 
 }, true);
 
-function resetAvgFaceWidth(){
+function resetAvgFaceWidth() {
     start_cntr = 0;
     avg_face_start_width = 0;
 }

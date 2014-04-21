@@ -5,7 +5,7 @@
 <html class="no-js">
     <head>
 
-        <title>tracking.js - Human Frontal Eye</title>
+        <title>Track</title>
 
         <meta charset="utf-8">
         <script src="/TrackingIUI/track/modernizr.js"></script>
@@ -28,17 +28,24 @@
         <script src="/TrackingIUI/track/headtrackr.js"></script>
         <script src="/TrackingIUI/track/trackStatus.js"></script>
         <script src="/TrackingIUI/track/pageZoom.js"></script>
-        
+        <link rel="stylesheet" type="text/css" href="/TrackingIUI/css/tracker.css" />
+
     </head>
     <body>
-        <div id="contentDiv">
-            <h1>Heading 1</h1>
-            <p>Some text to fill the page and test zooming.</p>
-            <h3>Heading 3</h3>
-        </div>
+        <iframe id="navFrame" src="/TrackingIUI/digg/digg.html" width="1800" height="600"></iframe>
         <div id="videoDiv">
             <canvas id="inputCanvas" width="320" height="240" style="display:none"></canvas>
             <video id="inputVideo" autoplay loop></video>
+            <div id="console">
+                <p id="support-message"></p> 
+                <p>Status : <span id="headtracker-message"></span></p> 
+                <p>
+                    <input type="button" onclick="htracker.stop();
+                htracker.start();" value=" Reload Face Detection " />
+                    <input type="button" onclick="resetAvgFaceWidth();" value=" Readjust Face Detection " />
+                </p>
+                <p id="calc-messages"></p>
+            </div>
         </div>
         <script type="text/javascript">
             console.log('Initializing the tracker and canvas...');
@@ -50,15 +57,5 @@
             htracker.init(videoInput, canvasInput);
             htracker.start();
         </script>
-        <div id="console">
-            <p id="support-message"></p> 
-            <p>Status : <span id="headtracker-message"></span></p> 
-            <p>
-                <input type="button" onclick="htracker.stop();
-                htracker.start();" value=" Reload Face Detection " />
-                <input type="button" onclick="resetAvgFaceWidth();" value=" Readjust Face Detection " />
-            </p>
-            <p id="calc-messages"></p>
-        </div>
     </body>
 </html>

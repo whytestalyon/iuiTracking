@@ -1,0 +1,33 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <script src="/TrackingIUI/track/modernizr.js"></script>
+        <script>
+            Modernizr.addTest('zoom', function() {
+                //create a div
+                var test = document.createElement('div');
+                //if there's a valid property in the browser
+                //it will return ""
+                //undefined means the browser doesn't know
+                //what you're talking about
+                if (test.style.zoom === undefined) {
+                    delete test;
+                    return false;
+                }
+                delete test;
+                return true;
+            });
+        </script>
+        <title>Test</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="/TrackingIUI/css/tracker.css" />
+    </head>
+    <body>
+        <div>Here is some content to test.</div>
+        <img src="../ui/Genome.jpg">
+    </body>
+</html>

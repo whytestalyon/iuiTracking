@@ -22,23 +22,13 @@ var currentZoomFactor = 1.0;
 var minZoomFactor = 0.5;
 
 /*
-	Tracker application
+ Set up camera connection and tracking
  */
-var htracker;
-
-/*
-	Start camera connection and tracking
-*/
-window.onload=function(){
-	console.log('Initializing the tracker and canvas...');
-	var videoInput = document.getElementById('inputVideo');
-	var canvasInput = document.getElementById('inputCanvas');
-
-	htracker = new headtrackr.Tracker({calcAngles: false, ui: false});
-	console.log('Starting the tracker...');
-	htracker.init(videoInput, canvasInput);
-	htracker.start();
-};
+console.log('Initializing tracker, video and canvas...');
+var videoInput = document.getElementById('inputVideo');
+var canvasInput = document.getElementById('inputCanvas');
+var htracker = new headtrackr.Tracker({calcAngles: false, ui: false});
+htracker.init(videoInput, canvasInput);
 
 
 statusMessages = {
@@ -101,9 +91,31 @@ document.addEventListener("facetrackingEvent", function(event) {
 
 }, true);
 
+function getAvgFaceWidth(){
+    return avg_face_start_width;
+}
+
+function reStartTracking() {
+    htracker.stop();
+    htracker.start();
+}
+
 function resetAvgFaceWidth() {
     start_cntr = 0;
     avg_face_start_width = 0;
+}
+
+function startTracking() {
+    console.log('Starting the tracker...');
+    htracker.start();
+}
+
+function stopTracking() {
+    htracker.stop();
+}
+
+function getCurrentZoomFactor(){
+    return currentZoomFactor;
 }
 
 /**
@@ -111,8 +123,8 @@ function resetAvgFaceWidth() {
  * This single message stream sends a message to the content script in the selected tab
  * with the expectation that the tab will return the current zoom level of the <body>.
  
-chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-  chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
-	console.log(response.farewell);
-  });
-});*/
+ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+ chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
+ console.log(response.farewell);
+ });
+ });*/

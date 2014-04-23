@@ -24,12 +24,19 @@ var minZoomFactor = 0.5;
 /*
  Set up camera connection and tracking
  */
-console.log('Initializing tracker, video and canvas...');
-var videoInput = document.getElementById('inputVideo');
-var canvasInput = document.getElementById('inputCanvas');
-var htracker = new headtrackr.Tracker({calcAngles: false, ui: false});
-htracker.init(videoInput, canvasInput);
+var init = false;
+var videoInput;
+var canvasInput;
+var htracker;
 
+function initTracker() {
+    console.log('Initializing tracker, video and canvas...');
+    videoInput = document.getElementById('inputVideo');
+    canvasInput = document.getElementById('inputCanvas');
+    htracker = new headtrackr.Tracker({calcAngles: false, ui: false});
+    htracker.init(videoInput, canvasInput);
+    init = true;
+}
 
 statusMessages = {
     "whitebalance": "checking for stability of camera whitebalance",
@@ -52,12 +59,16 @@ supportMessages = {
  * @param {type} param3
  */
 document.addEventListener("headtrackrStatus", function(event) {
-    if (event.status in supportMessages) {
-        var messagep = document.getElementById('support-message');
-        messagep.innerHTML = supportMessages[event.status];
-    } else if (event.status in statusMessages) {
-        var messagep = document.getElementById('headtracker-message');
-        messagep.innerHTML = statusMessages[event.status];
+    //check if popup page is open
+    var windows = chrome.extension.getViews({type: "popup"});
+    if (windows.length > 0) {
+        //respond to event by calling a function in the popup that will update it's
+        //DOM with the supplied value in the appropriate message window
+        if (event.status in supportMessages) {
+            windows[0].updateSupportMessage(supportMessages[event.status]);
+        } else if (event.status in statusMessages) {
+            windows[0].updateTrackerMessage(supportMessages[event.status]);
+        }
     }
 }, true);
 
@@ -73,31 +84,37 @@ document.addEventListener("facetrackingEvent", function(event) {
         //calculate ratio of current user face size compared to starting face size size
         var faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
+        var message = "";
         if (faceWidthRatio < 0.92) {
             //users face has moved farther from camera, start zooming out
             //xoomer(-0.05, innerDoc.body, null);
-            //display user face distance ratio
-            document.getElementById("calc-messages").innerText = "Zooming out! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+            //format user message information
+            message = "Zooming out!";
         } else if (faceWidthRatio > 1.15) {
             //users face has moved closer to camera, start zooming in
             //xoomer(0.05, innerDoc.body, null);
-            //display user face distance ratio
-            document.getElementById("calc-messages").innerText = "Zooming in! Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
-        } else {
-            //display user face distance ratio
-            document.getElementById("calc-messages").innerText = "Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+            //format user message information
+            message = "Zooming in!";
+        }
+        //format user face distance ratio message
+        message += " Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+        //check if popup page is open
+        var windows = chrome.extension.getViews({type: "popup"});
+        //if popup is open update it with the calculation message
+        if (windows.length > 0) {
+            windows[0].updateCalcMessage(message);
         }
     }
 
 }, true);
 
-function getAvgFaceWidth(){
+function getAvgFaceWidth() {
     return avg_face_start_width;
 }
 
 function reStartTracking() {
-    htracker.stop();
-    htracker.start();
+    stopTracking();
+    startTracking();
 }
 
 function resetAvgFaceWidth() {
@@ -107,14 +124,19 @@ function resetAvgFaceWidth() {
 
 function startTracking() {
     console.log('Starting the tracker...');
+    if (!init) {
+        initTracker();
+    }
     htracker.start();
 }
 
 function stopTracking() {
-    htracker.stop();
+    if (htracker !== undefined) {
+        htracker.stop();
+    }
 }
 
-function getCurrentZoomFactor(){
+function getCurrentZoomFactor() {
     return currentZoomFactor;
 }
 

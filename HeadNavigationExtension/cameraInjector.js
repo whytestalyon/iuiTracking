@@ -14,7 +14,9 @@ if (navigator.getUserMedia) {
 	console.log("User Media Supported!");
 	navigator.getUserMedia(videoObj, function(stream) {
 		var myStream = (navigator.webkitGetUserMedia) ? window.webkitURL.createObjectURL(stream) : stream;
-		myStream.stop();
+		if (this.myStream !== undefined) {
+			this.myStream.stop();
+		}
 	}, function(error) {
 		console.error("Video capture error: ", error.code);
 	});

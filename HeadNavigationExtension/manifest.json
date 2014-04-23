@@ -3,12 +3,16 @@
   "name": "Head Navigator",
   "description": "This extension allows a user to navigate any page, including zooming in and out, using their head.",
   "version": "1.0",
+  
+  "background": {
+    "page": "background.html"
+  },
 
   "options_page": "options.html",
   
   "permissions": [
     "videoCapture",
-	"https://www.google.com/*"
+    "*://www.google.com/*"
   ],
   
   "browser_action": {

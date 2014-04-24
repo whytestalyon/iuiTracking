@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html>
-    <head><title>My Test Extension Options</title></head>
+    <head>
+        <title>Tracking Pop-up</title>
+        <style>
+            body {
+                min-width: 360px;
+                min-height: 200px;
+            }
+        </style>
+    </head>
     <body>
         <div id="console">
             <p id="support-message"></p>
             <p>Status : <span id="headtracker-message"></span></p> 
             <p>
-                <button id="start">Start</button>
-		<button id="stop">Stop</button>
+                <button id="start">Start Tacking</button>
+                <button id="stop">Stop Tracking</button>
                 <button id="reloadFaceButton"> Reload Face Detection </button>
                 <button id="adjustFaceButton"> Adjust Face Detection </button>
             </p>

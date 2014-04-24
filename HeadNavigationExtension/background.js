@@ -16,10 +16,14 @@ var avg_face_start_width = -1; //estimated in centimeters
 var start_cntr = 0;
 var face_couts = 15;
 /*
- * Variable for tracking the current zoom factor for the page.
+ * Variables for tracking the zoom sensitivity of the extension
  */
-var currentZoomFactor = 1.0;
-var minZoomFactor = 0.5;
+var zoomOutRatio = 0.92;
+var maxSensitiveZoomOutRatio = 0.96;
+var minSensitiveZoomOutRatio = 0.80;
+var zoomInRatio = 1.15;
+var maxSensitiveZoomInRatio = 1.04;
+var minSensitiveZoomInRatio = 1.30;
 
 /*
  Set up camera connection and tracking
@@ -85,14 +89,20 @@ document.addEventListener("facetrackingEvent", function(event) {
         var faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
         var message = "";
-        if (faceWidthRatio < 0.92) {
+        if (faceWidthRatio < zoomOutRatio) {
             //users face has moved farther from camera, start zooming out
-            //xoomer(-0.05, innerDoc.body, null);
+            //notify active tab's content script to zoom out
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out"});
+            });
             //format user message information
             message = "Zooming out!";
-        } else if (faceWidthRatio > 1.15) {
+        } else if (faceWidthRatio > zoomInRatio) {
             //users face has moved closer to camera, start zooming in
-            //xoomer(0.05, innerDoc.body, null);
+            //notify active tab's content script to zoom in
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in"});
+            });
             //format user message information
             message = "Zooming in!";
         }
@@ -104,6 +114,7 @@ document.addEventListener("facetrackingEvent", function(event) {
         if (windows.length > 0) {
             windows[0].updateCalcMessage(message);
         }
+
     }
 
 }, true);
@@ -113,7 +124,9 @@ function getAvgFaceWidth() {
 }
 
 function reStartTracking() {
-    stopTracking();
+    if (htracker !== undefined) {
+        htracker.stop();
+    }
     startTracking();
 }
 
@@ -131,22 +144,32 @@ function startTracking() {
 }
 
 function stopTracking() {
+    console.log('Stoping the tracker...');
     if (htracker !== undefined) {
         htracker.stop();
+        htracker.sstopStream();
+        init = false;
     }
 }
 
-function getCurrentZoomFactor() {
-    return currentZoomFactor;
+function changeZoomOutSensitivity(inc_value) {
+    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value < minSensitiveZoomOutRatio) {
+        zoomOutRatio = minSensitiveZoomOutRatio;
+    } else
+    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value > maxSensitiveZoomOutRatio) {
+        zoomOutRatio = maxSensitiveZoomOutRatio;
+    } else {
+        zoomOutRatio = incLvl;
+    }
 }
 
-/**
- * Sending a request from the extension to the content script in the current tab.
- * This single message stream sends a message to the content script in the selected tab
- * with the expectation that the tab will return the current zoom level of the <body>.
- 
- chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
- chrome.tabs.sendMessage(tabs[0].id, {greeting: "hello"}, function(response) {
- console.log(response.farewell);
- });
- });*/
+function changeZoomInSensitivity(inc_value) {
+    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value > minSensitiveZoomInRatio) {
+        zoomInRatio = minSensitiveZoomInRatio;
+    } else
+    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value < maxSensitiveZoomInRatio) {
+        zoomInRatio = maxSensitiveZoomInRatio;
+    } else {
+        zoomInRatio = incLvl;
+    }
+}

@@ -24,6 +24,10 @@ var minSensitiveZoomOutRatio = 0.80;
 var zoomInRatio = 1.15;
 var maxSensitiveZoomInRatio = 1.04;
 var minSensitiveZoomInRatio = 1.30;
+/*
+ * Zoom managment variables
+ */
+var currentZoomIncrement = 0.25;
 
 /*
  Set up camera connection and tracking

@@ -11,14 +11,15 @@ chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
 /*
  * Zoom managment variables
  */
-var currentZoomIncrement = 0.15;
+var minZoomIncrement = 0.025, maxZoomIncrement = 0.5;
 var minZoomFactor = 0.5, maxZoomFactor = 15;
 
 /**
  * Function for increasing/decreasing the page level zoom.
- * @param {type} zoom_factor_increment increment by which to increase/decrease zoom
- * @param {DOM element} non_zoom_elm optional element to prevent from zooming
- * @returns {undefined} none
+ * @param {String} zoom_type is a message of "zoom_in" to tell the page to zoom in,
+ * and "zoom_out" to tell the page to zoom out.
+ * @returns {boolean} false if no zoom action can be taken (happens when page is
+ * zoomed in/out to the maximum allowed levels), true otherwise
  */
 function xoomer(zoom_type) {
     //grab the current zoom factor for the body

@@ -170,6 +170,6 @@ function changeZoomInSensitivity(level) {
 
 function changeZoomIncrement(inc_value) {
     if (typeof inc_value == 'number' && isFinite(inc_value)) {
-        zoomInRatio = inc_value;
+        currentZoomIncrement = inc_value;
     }
 }

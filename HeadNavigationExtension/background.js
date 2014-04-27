@@ -145,11 +145,12 @@ function startTracking() {
 
 function stopTracking() {
     console.log('Stoping the tracker...');
-    if (htracker !== undefined) {
+    if (htracker != undefined) {
         htracker.stop();
-        htracker.sstopStream();
+        htracker.stopStream();
         init = false;
     }
+    return true;
 }
 
 function changeZoomOutSensitivity(level) {

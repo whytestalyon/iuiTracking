@@ -14,21 +14,21 @@ function updateCalcMessage(msg) {
 }
 
 //register functionality for zoom speed slider
-document.getElementById('speedslide').onupdate = function() {
+document.getElementById('speedslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
         backgroundWindow.changeZoomIncrement(document.getElementById('speedslide').value);
     });
 };
 
 //register functionality for zoom in sensitivity slider
-document.getElementById('inslide').onupdate = function() {
+document.getElementById('inslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
         backgroundWindow.changeZoomInSensitivity(document.getElementById('inslide').value);
     });
 };
 
 //register functionality for zoom out sensitivity slider
-document.getElementById('outslide').onupdate = function() {
+document.getElementById('outslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
         backgroundWindow.changeZoomOutSensitivity(document.getElementById('outslide').value);
     });
@@ -52,7 +52,6 @@ document.getElementById('adjustFaceButton').onclick = function() {
 document.getElementById('start').onclick = function() {
     console.log('Starting...');
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-
         //start firing messages
         console.log('Starting tracking...');
         backgroundWindow.startTracking();
@@ -63,7 +62,6 @@ document.getElementById('start').onclick = function() {
 document.getElementById('stop').onclick = function() {
     console.log('Stoping...');
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-
         //stop firing messages
         console.log('Stoping tracking...');
         backgroundWindow.stopTracking();

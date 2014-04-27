@@ -1,3 +1,14 @@
+window.onload = function() {
+    console.log('Checking tracking status...');
+    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+        var trkStatus = backgroundWindow.isTracking();
+        console.log('Tracking status: ' + trkStatus);
+        if (trkStatus) {
+            displayTracking(backgroundWindow);
+        }
+    });
+};
+
 /*
  * functions that the backgroud page can call to update the popup with status of the tracker system
  */
@@ -30,7 +41,7 @@ document.getElementById('speedslide').onchange = function() {
 //register functionality for zoom in sensitivity slider
 document.getElementById('inslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.changeZoomInSensitivity(document.getElementById('inslide').value);
+        backgroundWindow.changeZoomInSensitivity(1.30 - document.getElementById('inslide').value);
     });
 };
 
@@ -70,6 +81,7 @@ document.getElementById('start').onclick = function() {
         //start firing messages
         console.log('Starting tracking...');
         backgroundWindow.startTracking();
+        displayTracking(backgroundWindow);
     });
 };
 
@@ -82,3 +94,23 @@ document.getElementById('stop').onclick = function() {
         backgroundWindow.stopTracking();
     });
 };
+
+//register the check button for tracking
+//document.getElementById('check').onclick = function() {
+//    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+//        displayTracking(backgroundWindow);
+//    });
+//};
+
+
+function displayTracking(backgroundWindow) {
+    console.log('Copying canvases...');
+    //copy video
+    var vidCanvas = backgroundWindow.getVideoCanvas();
+    var vidDiv = document.getElementById('vid');
+    vidDiv.appendChild(vidCanvas);
+    document.getElementById('inputCanvas').style.display = "";
+    //copy tracking box
+    var overlay =  backgroundWindow.getOverlayCanvas();
+    vidDiv.appendChild(overlay);
+}

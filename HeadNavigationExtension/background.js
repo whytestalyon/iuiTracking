@@ -36,13 +36,21 @@ var currentFaceWidth, faceWidthRatio;
 var init = false;
 var videoInput;
 var canvasInput;
+var overlayCanvas;
+var overlayContext;
 var htracker;
 
 function initTracker() {
     console.log('Initializing tracker, video and canvas...');
     videoInput = document.getElementById('inputVideo');
     canvasInput = document.getElementById('inputCanvas');
-    htracker = new headtrackr.Tracker({calcAngles: false, ui: false});
+    overlayCanvas = document.getElementById('overlayCanvas');
+    overlayCanvas.style.position = "absolute";
+    overlayCanvas.style.top = '0px';
+    overlayCanvas.style.zIndex = '100001';
+    overlayCanvas.style.display = 'block';
+    overlayContext = overlayCanvas.getContext('2d');
+    htracker = new headtrackr.Tracker({calcAngles: true, ui: false});
     htracker.init(videoInput, canvasInput);
     init = true;
 }
@@ -82,6 +90,17 @@ document.addEventListener("headtrackrStatus", function(event) {
 }, true);
 
 document.addEventListener("facetrackingEvent", function(event) {
+    //display the head tracking as a green box on the canvas
+    overlayContext.clearRect(0, 0, 320, 240);
+    if (event.detection == "CS") {
+        overlayContext.translate(event.x, event.y)
+        overlayContext.rotate(event.angle - (Math.PI / 2));
+        overlayContext.strokeStyle = "#00CC00";
+        overlayContext.strokeRect((-(event.width / 2)) >> 0, (-(event.height / 2)) >> 0, event.width, event.height);
+        overlayContext.rotate((Math.PI / 2) - event.angle);
+        overlayContext.translate(-event.x, -event.y);
+    }
+
     //check if we need to initialize the starting distance between users face and camera
     if (start_cntr < face_couts) {
         avg_face_start_width += event.width;
@@ -175,4 +194,16 @@ function changeZoomInSensitivity(level) {
 
 function changeZoomIncrement(inc_value) {
     currentZoomIncrement = inc_value;
+}
+
+function getVideoCanvas() {
+    return canvasInput;
+}
+
+function getOverlayCanvas(){
+    return overlayCanvas;
+}
+
+function isTracking() {
+    return init;
 }

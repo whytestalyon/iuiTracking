@@ -71,7 +71,7 @@ document.addEventListener("headtrackrStatus", function(event) {
         if (event.status in supportMessages) {
             windows[0].updateSupportMessage(supportMessages[event.status]);
         } else if (event.status in statusMessages) {
-            windows[0].updateTrackerMessage(supportMessages[event.status]);
+            windows[0].updateTrackerMessage(statusMessages[event.status]);
         }
     }
 }, true);
@@ -107,7 +107,7 @@ document.addEventListener("facetrackingEvent", function(event) {
             message = "Zooming in!";
         }
         //format user face distance ratio message
-        message += " Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom factor: " + currentZoomFactor;
+        message += " Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom increment(speed): " + (currentZoomIncrement * 100) + "%";
         //check if popup page is open
         var windows = chrome.extension.getViews({type: "popup"});
         //if popup is open update it with the calculation message

@@ -13,7 +13,9 @@ function updateCalcMessage(msg) {
     var message = "<div>Current Face Width: " + msg.faceWidth + "</div>" +
             "<div>Avg. Face Width: " + msg.avgFaceWidth + "</div>" +
             "<div>Face Ratio: " + msg.ratio + "</div>" +
-            "<div>Zoom Speed: " + msg.zoomSpeed + "</div>";
+            "<div>Zoom Speed: " + msg.zoomSpeed + "</div>" +
+            "<div>Zoom In Ratio: " + msg.zoomInRatio + "</div>" +
+            "<div>Zoom Out Ratio: " + msg.zoomOutRatio + "</div>";
     document.getElementById("calc-messages").innerHTML = message;
 }
 

@@ -117,7 +117,16 @@ document.addEventListener("facetrackingEvent", function(event) {
 
 function getStats() {
     //format user face distance ratio message
-    return {"faceWidth": currentFaceWidth, "avgFaceWidth": avg_face_start_width, "ratio": faceWidthRatio, "zoomSpeed": currentZoomIncrement};
+    var data =
+            {
+                "faceWidth": currentFaceWidth,
+                "avgFaceWidth": avg_face_start_width,
+                "ratio": faceWidthRatio,
+                "zoomSpeed": currentZoomIncrement,
+                "zoomInRatio": zoomInRatio,
+                "zoomOutRatio": zoomOutRatio
+            };
+    return data;
 }
 
 function reStartTracking() {
@@ -157,19 +166,13 @@ function stopTracking() {
 }
 
 function changeZoomOutSensitivity(level) {
-    if (typeof level == 'number' && isFinite(level)) {
-        zoomOutRatio = level;
-    }
+    zoomOutRatio = level;
 }
 
 function changeZoomInSensitivity(level) {
-    if (typeof level == 'number' && isFinite(level)) {
-        zoomInRatio = level;
-    }
+    zoomInRatio = level;
 }
 
 function changeZoomIncrement(inc_value) {
-    if (typeof inc_value == 'number' && isFinite(inc_value)) {
-        currentZoomIncrement = inc_value;
-    }
+    currentZoomIncrement = inc_value;
 }

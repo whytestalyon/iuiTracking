@@ -14,16 +14,23 @@ function updateCalcMessage(msg) {
 }
 
 //register functionality for zoom speed slider
-document.getElementById('speedslide').onclick = function() {
+document.getElementById('speedslide').onupdate = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.reStartTracking();
+        backgroundWindow.changeZoomIncrement(document.getElementById('speedslide').value);
     });
 };
 
-//register functionality for zoom sensitivity slider
-document.getElementById('senseslide').onclick = function() {
+//register functionality for zoom in sensitivity slider
+document.getElementById('inslide').onupdate = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.reStartTracking();
+        backgroundWindow.changeZoomInSensitivity(document.getElementById('inslide').value);
+    });
+};
+
+//register functionality for zoom out sensitivity slider
+document.getElementById('outslide').onupdate = function() {
+    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+        backgroundWindow.changeZoomOutSensitivity(document.getElementById('outslide').value);
     });
 };
 

@@ -19,13 +19,9 @@ var face_couts = 15;
  * Variables for tracking the zoom sensitivity of the extension
  */
 var zoomOutRatio = 0.92;
-var maxSensitiveZoomOutRatio = 0.96;
-var minSensitiveZoomOutRatio = 0.80;
 var zoomInRatio = 1.15;
-var maxSensitiveZoomInRatio = 1.04;
-var minSensitiveZoomInRatio = 1.30;
 /*
- * Zoom managment variables
+ * Variable for tracking Zoom speed
  */
 var currentZoomIncrement = 0.25;
 
@@ -97,7 +93,7 @@ document.addEventListener("facetrackingEvent", function(event) {
             //users face has moved farther from camera, start zooming out
             //notify active tab's content script to zoom out
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out"});
+                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
             });
             //format user message information
             message = "Zooming out!";
@@ -105,7 +101,7 @@ document.addEventListener("facetrackingEvent", function(event) {
             //users face has moved closer to camera, start zooming in
             //notify active tab's content script to zoom in
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in"});
+                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
             });
             //format user message information
             message = "Zooming in!";
@@ -156,24 +152,20 @@ function stopTracking() {
     }
 }
 
-function changeZoomOutSensitivity(inc_value) {
-    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value < minSensitiveZoomOutRatio) {
-        zoomOutRatio = minSensitiveZoomOutRatio;
-    } else
-    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value > maxSensitiveZoomOutRatio) {
-        zoomOutRatio = maxSensitiveZoomOutRatio;
-    } else {
-        zoomOutRatio = incLvl;
+function changeZoomOutSensitivity(level) {
+    if (typeof level == 'number' && isFinite(level)) {
+        zoomOutRatio = level;
     }
 }
 
-function changeZoomInSensitivity(inc_value) {
-    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value > minSensitiveZoomInRatio) {
-        zoomInRatio = minSensitiveZoomInRatio;
-    } else
-    if ((typeof inc_value == 'number' && isFinite(inc_value)) && inc_value < maxSensitiveZoomInRatio) {
-        zoomInRatio = maxSensitiveZoomInRatio;
-    } else {
-        zoomInRatio = incLvl;
+function changeZoomInSensitivity(level) {
+    if (typeof level == 'number' && isFinite(level)) {
+        zoomInRatio = level;
+    }
+}
+
+function changeZoomIncrement(inc_value) {
+    if (typeof inc_value == 'number' && isFinite(inc_value)) {
+        zoomInRatio = inc_value;
     }
 }

@@ -26,6 +26,11 @@ var zoomInRatio = 1.15;
 var currentZoomIncrement = 0.25;
 
 /*
+ * Tracking status variables
+ */
+var currentFaceWidth, faceWidthRatio;
+
+/*
  Set up camera connection and tracking
  */
 var init = false;
@@ -85,42 +90,34 @@ document.addEventListener("facetrackingEvent", function(event) {
         avg_face_start_width = (avg_face_start_width / face_couts);
         start_cntr++;
     } else {
+        //log current face width
+        currentFaceWidth = event.width;
         //calculate ratio of current user face size compared to starting face size size
-        var faceWidthRatio = event.width / avg_face_start_width;
+        faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
         var message = "";
         if (faceWidthRatio < zoomOutRatio) {
             //users face has moved farther from camera, start zooming out
             //notify active tab's content script to zoom out
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
+//                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
+                console.log(JSON.stringify({zoom_type: "zoom_out", zoom_increment: currentZoomIncrement}));
             });
-            //format user message information
-            message = "Zooming out!";
         } else if (faceWidthRatio > zoomInRatio) {
             //users face has moved closer to camera, start zooming in
             //notify active tab's content script to zoom in
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
+//                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
+                console.log(JSON.stringify({zoom_type: "zoom_in", zoom_increment: currentZoomIncrement}));
             });
-            //format user message information
-            message = "Zooming in!";
         }
-        //format user face distance ratio message
-        message += " Face width: " + event.width + ", Avg face width: " + avg_face_start_width + ", face2canvasRatio: " + faceWidthRatio + ", Zoom increment(speed): " + (currentZoomIncrement * 100) + "%";
-        //check if popup page is open
-        var windows = chrome.extension.getViews({type: "popup"});
-        //if popup is open update it with the calculation message
-        if (windows.length > 0) {
-            windows[0].updateCalcMessage(message);
-        }
-
     }
 
 }, true);
 
-function getAvgFaceWidth() {
-    return avg_face_start_width;
+function getStats() {
+    //format user face distance ratio message
+    return {"faceWidth": currentFaceWidth, "avgFaceWidth": avg_face_start_width, "ratio": faceWidthRatio, "zoomSpeed": currentZoomIncrement};
 }
 
 function reStartTracking() {
@@ -149,6 +146,12 @@ function stopTracking() {
         htracker.stop();
         htracker.stopStream();
         init = false;
+    }
+    //check if popup page is open
+    var windows = chrome.extension.getViews({type: "popup"});
+    if (windows.length > 0) {
+        //update status message to show tracker has stopped tracking
+        windows[0].updateTrackerMessage('Tracker stopped.');
     }
     return true;
 }

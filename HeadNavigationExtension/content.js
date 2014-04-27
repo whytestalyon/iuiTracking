@@ -1,3 +1,5 @@
+console.log("Injected!");
+
 /*
  * communication event ahndler that lets the content script listen for messages
  * from the background page and act accordinly

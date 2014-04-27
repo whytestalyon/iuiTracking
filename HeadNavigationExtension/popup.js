@@ -10,11 +10,16 @@ function updateTrackerMessage(msg) {
 }
 
 function updateCalcMessage(msg) {
-    document.getElementById("calc-messages").innerText = msg;
+    var message = "<div>Current Face Width: " + msg.faceWidth + "</div>" +
+            "<div>Avg. Face Width: " + msg.avgFaceWidth + "</div>" +
+            "<div>Face Ratio: " + msg.ratio + "</div>" +
+            "<div>Zoom Speed: " + msg.zoomSpeed + "</div>";
+    document.getElementById("calc-messages").innerHTML = message;
 }
 
 //register functionality for zoom speed slider
 document.getElementById('speedslide').onchange = function() {
+    console.log("Changing zoom speed: " + document.getElementById('speedslide').value);
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
         backgroundWindow.changeZoomIncrement(document.getElementById('speedslide').value);
     });
@@ -45,6 +50,14 @@ document.getElementById('reloadFaceButton').onclick = function() {
 document.getElementById('adjustFaceButton').onclick = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
         backgroundWindow.resetAvgFaceWidth();
+    });
+};
+
+//register functionality for get stats button
+document.getElementById('statsButton').onclick = function() {
+    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+        var stats = backgroundWindow.getStats();
+        updateCalcMessage(stats);
     });
 };
 

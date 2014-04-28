@@ -34,21 +34,21 @@ function updateCalcMessage(msg) {
 document.getElementById('speedslide').onchange = function() {
     console.log("Changing zoom speed: " + document.getElementById('speedslide').value);
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.changeZoomIncrement(document.getElementById('speedslide').value);
+        backgroundWindow.changeZoomIncrement(parseFloat(document.getElementById('speedslide').value));
     });
 };
 
 //register functionality for zoom in sensitivity slider
 document.getElementById('inslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.changeZoomInSensitivity(1.30 - document.getElementById('inslide').value);
+        backgroundWindow.changeZoomInSensitivity(1.30 - parseFloat(document.getElementById('inslide').value));
     });
 };
 
 //register functionality for zoom out sensitivity slider
 document.getElementById('outslide').onchange = function() {
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        backgroundWindow.changeZoomOutSensitivity(document.getElementById('outslide').value);
+        backgroundWindow.changeZoomOutSensitivity(parseFloat(document.getElementById('outslide').value));
     });
 };
 

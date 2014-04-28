@@ -69,12 +69,6 @@ supportMessages = {
     "no camera": "No camera found. Using fallback video for facedetection."
 };
 
-/*
- * Zoom command counters
- */
-var zoomInCounter = 0;
-var zoomOutCounter = 0;
-var lastZoomType = "";
 
 /**
  * Monitor the status of the tracker.
@@ -95,6 +89,24 @@ document.addEventListener("headtrackrStatus", function(event) {
         }
     }
 }, true);
+
+chrome.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+            console.log(sender.tab ?
+                    "from a content script:" + sender.tab.url :
+                    "from the extension");
+            if (request.req == "zoom"){
+                sendResponse(currentZoomlvl);
+            }
+        });
+
+/*
+ * Zoom command counters
+ */
+var zoomInCounter = 0;
+var zoomOutCounter = 0;
+var lastZoomType = "";
+var currentZoomlvl;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
@@ -121,46 +133,15 @@ document.addEventListener("facetrackingEvent", function(event) {
         //calculate ratio of current user face size compared to starting face size size
         faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
-        var message = "";
+        var zoomType = "";
         if (faceWidthRatio < zoomOutRatio) {
-            if (lastZoomType === "out") {
-                zoomOutCounter++;
-                if (zoomOutCounter > 9) {
-                    //users face has moved farther from camera, start zooming out
-                    //notify active tab's content script to zoom out
-                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                        chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
-                        console.log(JSON.stringify({zoom_type: "zoom_out", zoom_increment: currentZoomIncrement}));
-                    });
-                    zoomOutCounter = 0;
-                }
-            } else {
-                lastZoomType = 'out';
-                zoomOutCounter++;
-                zoomInCounter = 0;
-            }
+            zoomType = 'zoom_out';
         } else if (faceWidthRatio > zoomInRatio) {
-            if (lastZoomType === "in") {
-                zoomInCounter++;
-                if (zoomInCounter > 9) {
-                    //users face has moved closer to camera, start zooming in
-                    //notify active tab's content script to zoom in
-                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                        chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
-                        console.log(JSON.stringify({zoom_type: "zoom_in", zoom_increment: currentZoomIncrement}));
-                    });
-                    zoomInCounter = 0;
-                }
-            } else {
-                lastZoomType = 'in';
-                zoomInCounter++;
-                zoomOutCounter = 0;
-            }
+            zoomType = 'zoom_in';
         } else {
-            lastZoomType = "";
-            zoomOutCounter = 0;
-            zoomInCounter = 0;
+            zoomType = 'none';
         }
+        currentZoomlvl = {zoom_type: zoomType, zoom_increment: currentZoomIncrement};
     }
 
 }, true);

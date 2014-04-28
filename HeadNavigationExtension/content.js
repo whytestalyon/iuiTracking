@@ -1,13 +1,15 @@
-console.log("Injected!");
+//document.getElementsByTagName('body')[0].innerHTML = "Hi this is new!";
 
 /*
  * communication event ahndler that lets the content script listen for messages
  * from the background page and act accordinly
  */
 chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
+    console.log(JSON.stringify(msg));
     if (msg.zoom_type) {
         xoomer(msg);
     }
+    return true;
 });
 
 /*
@@ -46,7 +48,7 @@ function xoomer(zoom_object) {
         newZoomFactor = minZoomFactor;
     } else if (newZoomFactor > maxZoomFactor && currentZoomFactor !== maxZoomFactor) {
         newZoomFactor = maxZoomFactor;
-    } else {
+    } else if (newZoomFactor === maxZoomFactor || newZoomFactor === minZoomFactor) {
         //already at zoom boundry so nothing to do, just return
         return false;
     }

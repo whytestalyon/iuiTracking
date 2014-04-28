@@ -69,6 +69,13 @@ supportMessages = {
     "no camera": "No camera found. Using fallback video for facedetection."
 };
 
+/*
+ * Zoom command counters
+ */
+var zoomInCounter = 0;
+var zoomOutCounter = 0;
+var lastZoomType = "";
+
 /**
  * Monitor the status of the tracker.
  * @param {type} param1
@@ -116,19 +123,43 @@ document.addEventListener("facetrackingEvent", function(event) {
         //determine if threshold for action has been met
         var message = "";
         if (faceWidthRatio < zoomOutRatio) {
-            //users face has moved farther from camera, start zooming out
-            //notify active tab's content script to zoom out
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
-                console.log(JSON.stringify({zoom_type: "zoom_out", zoom_increment: currentZoomIncrement}));
-            });
+            if (lastZoomType === "out") {
+                zoomOutCounter++;
+                if (zoomOutCounter > 9) {
+                    //users face has moved farther from camera, start zooming out
+                    //notify active tab's content script to zoom out
+                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                        chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_out", zoom_increment: currentZoomIncrement});
+                        console.log(JSON.stringify({zoom_type: "zoom_out", zoom_increment: currentZoomIncrement}));
+                    });
+                    zoomOutCounter = 0;
+                }
+            } else {
+                lastZoomType = 'out';
+                zoomOutCounter++;
+                zoomInCounter = 0;
+            }
         } else if (faceWidthRatio > zoomInRatio) {
-            //users face has moved closer to camera, start zooming in
-            //notify active tab's content script to zoom in
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//                chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
-                console.log(JSON.stringify({zoom_type: "zoom_in", zoom_increment: currentZoomIncrement}));
-            });
+            if (lastZoomType === "in") {
+                zoomInCounter++;
+                if (zoomInCounter > 9) {
+                    //users face has moved closer to camera, start zooming in
+                    //notify active tab's content script to zoom in
+                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                        chrome.tabs.sendMessage(tabs[0].id, {zoom_type: "zoom_in", zoom_increment: currentZoomIncrement});
+                        console.log(JSON.stringify({zoom_type: "zoom_in", zoom_increment: currentZoomIncrement}));
+                    });
+                    zoomInCounter = 0;
+                }
+            } else {
+                lastZoomType = 'in';
+                zoomInCounter++;
+                zoomOutCounter = 0;
+            }
+        } else {
+            lastZoomType = "";
+            zoomOutCounter = 0;
+            zoomInCounter = 0;
         }
     }
 
@@ -200,7 +231,7 @@ function getVideoCanvas() {
     return canvasInput;
 }
 
-function getOverlayCanvas(){
+function getOverlayCanvas() {
     return overlayCanvas;
 }
 

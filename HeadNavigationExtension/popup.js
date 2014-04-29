@@ -41,7 +41,8 @@ function updateCalcMessage(msg) {
             "<div>Face Ratio: " + msg.ratio + "</div>" +
             "<div>Zoom Speed: " + msg.zoomSpeed + "</div>" +
             "<div>Zoom In Ratio: " + msg.zoomInRatio + "</div>" +
-            "<div>Zoom Out Ratio: " + msg.zoomOutRatio + "</div>";
+            "<div>Zoom Out Ratio: " + msg.zoomOutRatio + "</div>"+
+            "<div>Head Angle (radians): " + msg.angle + "</div>";
     document.getElementById("calc-messages").innerHTML = message;
 }
 

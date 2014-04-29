@@ -95,7 +95,7 @@ chrome.runtime.onMessage.addListener(
             console.log(sender.tab ?
                     "from a content script:" + sender.tab.url :
                     "from the extension");
-            if (request.req == "zoom"){
+            if (request.req == "zoom") {
                 sendResponse(currentZoomlvl);
             }
         });
@@ -107,6 +107,14 @@ var zoomInCounter = 0;
 var zoomOutCounter = 0;
 var lastZoomType = "";
 var currentZoomlvl;
+/*
+ * angle of face on canvas (in radians). The angle is calculated in normal 
+ * counter-clockwise direction. I.e. if head is upright, this will return π/2, 
+ * if head is tilted towards right (as seen on canvas, which is to the left in 
+ * real life), this will return a degree between 0 and π/2. And its between
+ * π and π/2 in the opposite direction.
+ */
+var currentHeadAngle = Math.PI / 2;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
@@ -119,7 +127,7 @@ document.addEventListener("facetrackingEvent", function(event) {
         overlayContext.rotate((Math.PI / 2) - event.angle);
         overlayContext.translate(-event.x, -event.y);
     }
-
+    currentHeadAngle = event.angle;
     //check if we need to initialize the starting distance between users face and camera
     if (start_cntr < face_couts) {
         avg_face_start_width += event.width;
@@ -155,7 +163,8 @@ function getStats() {
                 "ratio": faceWidthRatio,
                 "zoomSpeed": currentZoomIncrement,
                 "zoomInRatio": zoomInRatio,
-                "zoomOutRatio": zoomOutRatio
+                "zoomOutRatio": zoomOutRatio,
+                "angle": currentHeadAngle
             };
     return data;
 }

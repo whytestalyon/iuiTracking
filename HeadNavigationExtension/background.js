@@ -92,10 +92,14 @@ document.addEventListener("headtrackrStatus", function(event) {
 
 chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
-            console.log(sender.tab ?
-                    "from a content script:" + sender.tab.url :
-                    "from the extension");
+//            console.log(sender.tab ?
+//                    "from a content script:" + sender.tab.url :
+//                    "from the extension");
             if (request.req == "zoom") {
+                if (currentZoomlvl.zoom_type === "back" || currentZoomlvl.zoom_type === "forward") {
+                    goBackCounter = 0;
+                    goForwardCounter = 0;
+                }
                 sendResponse(currentZoomlvl);
             }
         });
@@ -115,6 +119,10 @@ var currentZoomlvl;
  * π and π/2 in the opposite direction.
  */
 var currentHeadAngle = Math.PI / 2;
+var goBackAngle = Math.PI / 3;
+var goBackCounter = 0;
+var goForwardAngle = (2 * Math.PI) / 3;
+var goForwardCounter = 0;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
@@ -129,25 +137,43 @@ document.addEventListener("facetrackingEvent", function(event) {
     }
     currentHeadAngle = event.angle;
     //check if we need to initialize the starting distance between users face and camera
-    if (start_cntr < face_couts) {
+    //other wise determine if we need to zoom, or navigate arround
+    if (start_cntr < face_couts && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
         avg_face_start_width += event.width;
         start_cntr++;
     } else if (start_cntr === face_couts) {
         avg_face_start_width = (avg_face_start_width / face_couts);
         start_cntr++;
     } else {
-        //log current face width
+        //get current face width
         currentFaceWidth = event.width;
         //calculate ratio of current user face size compared to starting face size size
         faceWidthRatio = event.width / avg_face_start_width;
         //determine if threshold for action has been met
         var zoomType = "";
-        if (faceWidthRatio < zoomOutRatio) {
+        if (faceWidthRatio < zoomOutRatio && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
             zoomType = 'zoom_out';
-        } else if (faceWidthRatio > zoomInRatio) {
+        } else if (faceWidthRatio > zoomInRatio && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
             zoomType = 'zoom_in';
         } else {
             zoomType = 'none';
+        }
+        //determine if we need to indicate that the browser should go back a page or
+        //forward a page
+        if (currentHeadAngle > goForwardAngle) {
+            goBackCounter = 0;
+            goForwardCounter++;
+        } else if (currentHeadAngle < goBackAngle) {
+            goForwardCounter = 0;
+            goBackCounter++;
+        } else {
+            goBackCounter = 0;
+            goForwardCounter = 0;
+        }
+        if (goForwardCounter > 30){
+            zoomType = "forward"
+        }else if (goBackCounter > 30){
+            zoomType = "back"
         }
         currentZoomlvl = {zoom_type: zoomType, zoom_increment: currentZoomIncrement};
     }
@@ -204,6 +230,8 @@ function stopTracking() {
         //update status message to show tracker has stopped tracking
         windows[0].updateTrackerMessage('Tracker stopped.');
     }
+    //reset the page zoom to prevent issues with zoom out or in when tracker is stopped
+    currentZoomlvl = {zoom_type: "stop", zoom_increment: currentZoomIncrement};
     return true;
 }
 

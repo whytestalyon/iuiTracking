@@ -11,7 +11,7 @@
 //    }
 //    return true;
 //});
-window.setInterval(function() {
+var snyc = window.setInterval(function() {
     chrome.runtime.sendMessage({req: "zoom"}, function(response) {
 //        console.log("Got: " + JSON.stringify(response));
         xoomer(response);
@@ -39,18 +39,27 @@ function xoomer(zoom_object) {
         var currentZoomFactor = document.getElementsByTagName('body')[0].style.zoom;
         if (currentZoomFactor == "") {//handle case when page body has no zoom level initially
             currentZoomFactor = 1;
-        }else{
+        } else {
             currentZoomFactor = parseFloat(document.getElementsByTagName('body')[0].style.zoom);
         }
         //determine if we should zoom in (increase zoom factor) or zoom out
         //(decrease the zoom factor)
         var newZoomFactor;
-        if (zoom_type === "zoom_in") {
-            //calculate new zoom factor for zooming in
-            newZoomFactor = currentZoomFactor + currentZoomIncrement;
-        } else {
-            //calculate new zoom factor for zooming out
-            newZoomFactor = currentZoomFactor - currentZoomIncrement;
+        switch (zoom_type) {
+            case "zoom_in":
+                //calculate new zoom factor for zooming in
+                newZoomFactor = currentZoomFactor + currentZoomIncrement;
+                break;
+            case "zoom_out":
+                //calculate new zoom factor for zooming out
+                newZoomFactor = currentZoomFactor - currentZoomIncrement;
+                break;
+            case "forward":
+                window.history.forward();
+            case "back":
+                window.history.back();
+            default:
+                return false;
         }
         //reset boundaries if outside of max or minimum zoom factor
         if (newZoomFactor < minZoomFactor) {
@@ -62,5 +71,7 @@ function xoomer(zoom_object) {
         console.log('New Zoom factor: ' + newZoomFactor);
         document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
         console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
+    } else if (zoom_object && zoom_object.zoom_type !== 'stop') {
+        window.clearInterval(sync);
     }
 }

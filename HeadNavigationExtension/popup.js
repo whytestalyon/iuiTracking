@@ -1,13 +1,28 @@
 window.onload = function() {
     console.log('Checking tracking status...');
     chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+        //initialize the tracking status
         var trkStatus = backgroundWindow.isTracking();
         console.log('Tracking status: ' + trkStatus);
         if (trkStatus) {
             displayTracking(backgroundWindow);
+            pingStats();
         }
+        //grab the previous settings for the sliders
+        document.getElementById('outslide').value = backgroundWindow.getZoomOutSensitivity();
+        document.getElementById('inslide').value = 1.30 - backgroundWindow.getZoomInSensitivity();
+        document.getElementById('speedslide').value = backgroundWindow.getZoomIncrement();
     });
 };
+
+function pingStats() {
+    window.setInterval(function() {
+        chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+            var stats = backgroundWindow.getStats();
+            updateCalcMessage(stats);
+        });
+    }, 100);
+}
 
 /*
  * functions that the backgroud page can call to update the popup with status of the tracker system
@@ -82,6 +97,7 @@ document.getElementById('start').onclick = function() {
         console.log('Starting tracking...');
         backgroundWindow.startTracking();
         displayTracking(backgroundWindow);
+        pingStats();
     });
 };
 
@@ -111,6 +127,6 @@ function displayTracking(backgroundWindow) {
     vidDiv.appendChild(vidCanvas);
     document.getElementById('inputCanvas').style.display = "";
     //copy tracking box
-    var overlay =  backgroundWindow.getOverlayCanvas();
+    var overlay = backgroundWindow.getOverlayCanvas();
     vidDiv.appendChild(overlay);
 }

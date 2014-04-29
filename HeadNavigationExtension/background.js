@@ -161,6 +161,7 @@ function getStats() {
 }
 
 function reStartTracking() {
+    resetAvgFaceWidth();
     if (htracker !== undefined) {
         htracker.stop();
     }
@@ -186,6 +187,7 @@ function stopTracking() {
         htracker.stop();
         htracker.stopStream();
         init = false;
+        htracker = null;
     }
     //check if popup page is open
     var windows = chrome.extension.getViews({type: "popup"});
@@ -194,6 +196,18 @@ function stopTracking() {
         windows[0].updateTrackerMessage('Tracker stopped.');
     }
     return true;
+}
+
+function getZoomOutSensitivity() {
+    return zoomOutRatio;
+}
+
+function getZoomInSensitivity() {
+    return zoomInRatio;
+}
+
+function getZoomIncrement() {
+    return currentZoomIncrement;
 }
 
 function changeZoomOutSensitivity(level) {

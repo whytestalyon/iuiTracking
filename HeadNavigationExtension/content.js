@@ -16,7 +16,7 @@ window.setInterval(function() {
 //        console.log("Got: " + JSON.stringify(response));
         xoomer(response);
     });
-}, 250);
+}, 100);
 
 /*
  * Zoom range variables

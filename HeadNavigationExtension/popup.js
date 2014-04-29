@@ -42,7 +42,9 @@ function updateCalcMessage(msg) {
             "<div>Zoom Speed: " + msg.zoomSpeed + "</div>" +
             "<div>Zoom In Ratio: " + msg.zoomInRatio + "</div>" +
             "<div>Zoom Out Ratio: " + msg.zoomOutRatio + "</div>"+
-            "<div>Head Angle (radians): " + msg.angle + "</div>";
+            "<div>Head Angle (radians): " + msg.angle + "</div>"+
+            "<div>Head Position (X): " + msg.x + "</div>"+
+            "<div>Head Position (Y): " + msg.y + "</div>";
     document.getElementById("calc-messages").innerHTML = message;
 }
 
@@ -83,12 +85,12 @@ document.getElementById('adjustFaceButton').onclick = function() {
 };
 
 //register functionality for get stats button
-document.getElementById('statsButton').onclick = function() {
-    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
-        var stats = backgroundWindow.getStats();
-        updateCalcMessage(stats);
-    });
-};
+//document.getElementById('statsButton').onclick = function() {
+//    chrome.runtime.getBackgroundPage(function(backgroundWindow) {
+//        var stats = backgroundWindow.getStats();
+//        updateCalcMessage(stats);
+//    });
+//};
 
 //register the start button for tracking
 document.getElementById('start').onclick = function() {

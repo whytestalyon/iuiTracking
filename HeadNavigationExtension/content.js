@@ -56,8 +56,10 @@ function xoomer(zoom_object) {
                 break;
             case "forward":
                 window.history.forward();
+                break;
             case "back":
                 window.history.back();
+                break;
             default:
                 return false;
         }
@@ -71,7 +73,7 @@ function xoomer(zoom_object) {
         console.log('New Zoom factor: ' + newZoomFactor);
         document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
         console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
-    } else if (zoom_object && zoom_object.zoom_type !== 'stop') {
+    } else if (zoom_object && zoom_object.zoom_type === 'stop') {
         window.clearInterval(sync);
     }
 }

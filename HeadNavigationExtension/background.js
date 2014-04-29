@@ -96,7 +96,7 @@ chrome.runtime.onMessage.addListener(
 //                    "from a content script:" + sender.tab.url :
 //                    "from the extension");
             if (request.req == "zoom") {
-                if (currentZoomlvl.zoom_type === "back" || currentZoomlvl.zoom_type === "forward") {
+                if (currentZoomlvl != undefined && currentZoomlvl.zoom_type === "back" || currentZoomlvl.zoom_type === "forward") {
                     goBackCounter = 0;
                     goForwardCounter = 0;
                 }
@@ -123,12 +123,15 @@ var goBackAngle = Math.PI / 3;
 var goBackCounter = 0;
 var goForwardAngle = (2 * Math.PI) / 3;
 var goForwardCounter = 0;
+var currentXpos = 0, currentYpos = 0;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
     overlayContext.clearRect(0, 0, 320, 240);
+    currentXpos = event.x;
+    currentYpos = event.y;
     if (event.detection == "CS") {
-        overlayContext.translate(event.x, event.y)
+        overlayContext.translate(event.x, event.y);
         overlayContext.rotate(event.angle - (Math.PI / 2));
         overlayContext.strokeStyle = "#00CC00";
         overlayContext.strokeRect((-(event.width / 2)) >> 0, (-(event.height / 2)) >> 0, event.width, event.height);
@@ -190,7 +193,9 @@ function getStats() {
                 "zoomSpeed": currentZoomIncrement,
                 "zoomInRatio": zoomInRatio,
                 "zoomOutRatio": zoomOutRatio,
-                "angle": currentHeadAngle
+                "angle": currentHeadAngle,
+                "x": currentXpos,
+                "y": currentYpos
             };
     return data;
 }

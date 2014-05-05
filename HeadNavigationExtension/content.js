@@ -1,56 +1,19 @@
-//document.getElementsByTagName('body')[0].innerHTML = "Hi this is new!";
-
-/*
- * communication event ahndler that lets the content script listen for messages
- * from the background page and act accordinly
- */
-//chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
-//    console.log(JSON.stringify(msg));
-//    if (msg.zoom_type) {
-//        xoomer(msg);
-//    }
-//    return true;
-//});
-
 /*
  * Zoom range variables
  */
 var minZoomFactor = 0.5, maxZoomFactor = 5;
-/*
- * Navigation variables
- */
-var navCntr = 5;
 
 /*
- * Pull timer function for the script to check in with the background page
+ * Pull timer function for the script to check in with the background page.
+ * Function for increasing/decreasing the page level zoom and navigation
+ * based on head angle. Runs every 100ms.
  * @type @exp;window@call;setInterval
  */
 var snyc = window.setInterval(function() {
+    var nav = "";
     chrome.runtime.sendMessage({req: "zoom"}, function(response) {
-//        console.log("Got: " + JSON.stringify(response));
-        xoomer(response);
-    });
-}, 100);
-
-
-
-
-/**
- * Function for increasing/decreasing the page level zoom.
- * @param {Object} zoom_object is a message of "zoom_in" to tell the page to zoom in,
- * and "zoom_out" to tell the page to zoom out, and contains the zoom increment.
- * @returns {boolean} false if no zoom action can be taken (happens when page is
- * zoomed in/out to the maximum allowed levels), true otherwise
- */
-function xoomer(zoom_object) {
-    //handle the nav request, prevent other operations until nav operation completes
-    if(navCntr < 0){
-        navCntr = 5;
-    }else if( navCntr < 5){
-        navCntr--;
-    }else if (zoom_object && zoom_object.zoom_type !== 'none') {
-        var currentZoomIncrement = zoom_object.zoom_increment;
-        var zoom_type = zoom_object.zoom_type;
+        var currentZoomIncrement = response.zoom_increment;
+        var zoom_type = response.zoom_type;
         //grab the current zoom factor for the body
         var currentZoomFactor = document.getElementsByTagName('body')[0].style.zoom;
         if (currentZoomFactor == "") {//handle case when page body has no zoom level initially
@@ -71,12 +34,8 @@ function xoomer(zoom_object) {
                 newZoomFactor = currentZoomFactor - currentZoomIncrement;
                 break;
             case "forward":
-                window.history.forward();
-                navCntr--;
-                break;
             case "back":
-                window.history.back();
-                navCntr--;
+                nav = zoom_type;
                 break;
             default:
                 return false;
@@ -91,7 +50,18 @@ function xoomer(zoom_object) {
         console.log('New Zoom factor: ' + newZoomFactor);
         document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
         console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
-    } else if (zoom_object && zoom_object.zoom_type === 'stop') {
-        window.clearInterval(sync);
+    });
+    
+    //check if we need to navigate through browser history and notify the background
+    //page that the content page has recieved the navigation message
+    if( nav !== ""){
+        //notify background page of recieved go back message
+        chrome.runtime.sendMessage({req: "gotNavMsg"}, function(response) {
+            if(nav === 'forward'){
+                window.history.forward();
+            }else if(nav === 'back'){
+                window.history.back();
+            }
+        });
     }
-}
+}, 100);//run pull request every 100ms

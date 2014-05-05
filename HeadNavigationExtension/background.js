@@ -15,6 +15,7 @@
 var avg_face_start_width = -1; //estimated in centimeters
 var start_cntr = 0;
 var face_couts = 5;
+var navCntr = -1;
 /*
  * Variables for tracking the zoom sensitivity of the extension
  */
@@ -44,7 +45,24 @@ function initTracker() {
     console.log('Initializing tracker, video and canvas...');
     videoInput = document.getElementById('inputVideo');
     canvasInput = document.getElementById('inputCanvas');
+    if (canvasInput === null) {//reset after restart of tracker because when the 
+        // popup requests the video and tracking feed the physical elements get 
+        // moved from the background DOM to somewhere else that I'm not sure of ;)
+        console.log(document);
+        var can = '<canvas id="inputCanvas" width="320" height="240" style="display:none"></canvas>';
+        var curHtml = document.getElementsByTagName('body')[0].innerHTML;
+        document.getElementsByTagName('body')[0].innerHTML = curHtml + can;
+        canvasInput = document.getElementById('inputCanvas');
+    }
     overlayCanvas = document.getElementById('overlayCanvas');
+    if (overlayCanvas === null) {//reset after restart of tracker because when 
+        // the popup requests the video and tracking feed the physical elements 
+        // get moved from the background DOM to somewhere else that I'm not sure of ;)
+        var can = '<canvas id="overlayCanvas" width="320" height="240"></canvas>';
+        var curHtml = document.getElementsByTagName('body')[0].innerHTML;
+        document.getElementsByTagName('body')[0].innerHTML = curHtml + can;
+        overlayCanvas = document.getElementById('overlayCanvas');
+    }
     overlayCanvas.style.position = "absolute";
     overlayCanvas.style.top = '0px';
     overlayCanvas.style.zIndex = '100001';
@@ -101,6 +119,11 @@ chrome.runtime.onMessage.addListener(
                     goForwardCounter = 0;
                 }
                 sendResponse(currentZoomlvl);
+            } else if (request.req == "gotNavMsg") {
+                navCntr = 50;//hold the tracker from doing anything for 1 second after navigating somewhere
+                //update zoom settings
+                currentZoomlvl = {zoom_type: 'none', zoom_increment: currentZoomIncrement};
+                sendResponse(currentZoomlvl);
             }
         });
 
@@ -125,7 +148,6 @@ var goForward = 1.4;//radians
 var goForwardCounter = 0;
 var currentXpos = 0, currentYpos = 0;
 var zoomMinAngle = 1.48, zoomMaxAngle = 1.61;
-var navHold = 10;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
@@ -143,14 +165,10 @@ document.addEventListener("facetrackingEvent", function(event) {
     currentHeadAngle = event.angle;
     //check if previous command was a navigation command, if so make sure it is
     //held for a while so the pulling content script can recieve the message
-    if (currentZoomlvl
-            && currentZoomlvl.zoom_type
-            && (currentZoomlvl.zoom_type === 'forward' || currentZoomlvl.zoom_type === 'back')
-            && navHold > 0) {
-        navHold--;
+    if (navCntr > 0) {
+        //do nothing until content script notifys that it go the message to navigate
+        navCntr--;
     } else {
-        //reset Navigation Hold
-        navHold = 10;
         //determine if zoom operation or navigation operation based on head angle
         var zoomType = "none";
         if (currentHeadAngle <= zoomMaxAngle && currentHeadAngle >= zoomMinAngle) {
@@ -246,7 +264,6 @@ function stopTracking() {
         htracker.stop();
         htracker.stopStream();
         init = false;
-        htracker = null;
     }
     //check if popup page is open
     var windows = chrome.extension.getViews({type: "popup"});
@@ -255,7 +272,7 @@ function stopTracking() {
         windows[0].updateTrackerMessage('Tracker stopped.');
     }
     //reset the page zoom to prevent issues with zoom out or in when tracker is stopped
-    currentZoomlvl = {zoom_type: "stop", zoom_increment: currentZoomIncrement};
+    currentZoomlvl = {zoom_type: "none", zoom_increment: currentZoomIncrement};
     return true;
 }
 

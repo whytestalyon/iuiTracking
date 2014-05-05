@@ -1,40 +1,20 @@
-//document.getElementsByTagName('body')[0].innerHTML = "Hi this is new!";
-
-/*
- * communication event ahndler that lets the content script listen for messages
- * from the background page and act accordinly
- */
-//chrome.runtime.onMessage.addListener(function(msg, _, sendResponse) {
-//    console.log(JSON.stringify(msg));
-//    if (msg.zoom_type) {
-//        xoomer(msg);
-//    }
-//    return true;
-//});
-var snyc = window.setInterval(function() {
-    chrome.runtime.sendMessage({req: "zoom"}, function(response) {
-//        console.log("Got: " + JSON.stringify(response));
-        xoomer(response);
-    });
-}, 100);
-
 /*
  * Zoom range variables
  */
 var minZoomFactor = 0.5, maxZoomFactor = 5;
+var nav = "";
 
 
-/**
- * Function for increasing/decreasing the page level zoom.
- * @param {Object} zoom_object is a message of "zoom_in" to tell the page to zoom in,
- * and "zoom_out" to tell the page to zoom out, and contains the zoom increment.
- * @returns {boolean} false if no zoom action can be taken (happens when page is
- * zoomed in/out to the maximum allowed levels), true otherwise
+/*
+ * Pull timer function for the script to check in with the background page.
+ * Function for increasing/decreasing the page level zoom and navigation
+ * based on head angle. Runs every 100ms.
+ * @type @exp;window@call;setInterval
  */
-function xoomer(zoom_object) {
-    if (zoom_object && zoom_object.zoom_type !== 'none') {
-        var currentZoomIncrement = zoom_object.zoom_increment;
-        var zoom_type = zoom_object.zoom_type;
+var snyc = window.setInterval(function() {
+    chrome.runtime.sendMessage({req: "zoom"}, function(response) {
+        var currentZoomIncrement = response.zoom_increment;
+        var zoom_type = response.zoom_type;
         //grab the current zoom factor for the body
         var currentZoomFactor = document.getElementsByTagName('body')[0].style.zoom;
         if (currentZoomFactor == "") {//handle case when page body has no zoom level initially
@@ -55,13 +35,13 @@ function xoomer(zoom_object) {
                 newZoomFactor = currentZoomFactor - currentZoomIncrement;
                 break;
             case "forward":
-                window.history.forward();
-                break;
             case "back":
-                window.history.back();
+                setNavStatus(zoom_type);
+                newZoomFactor = currentZoomFactor;
                 break;
             default:
-                return false;
+                newZoomFactor = currentZoomFactor;
+                break;
         }
         //reset boundaries if outside of max or minimum zoom factor
         if (newZoomFactor < minZoomFactor) {
@@ -70,10 +50,29 @@ function xoomer(zoom_object) {
             newZoomFactor = maxZoomFactor;
         }
         //update body zoom factor in DOM
-        console.log('New Zoom factor: ' + newZoomFactor);
-        document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
-        console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
-    } else if (zoom_object && zoom_object.zoom_type === 'stop') {
-        window.clearInterval(sync);
+//        console.log('New Zoom factor: ' + newZoomFactor);
+        if (newZoomFactor !== currentZoomFactor) {
+            document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
+        }
+//        console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
+    });
+
+    //check if we need to navigate through browser history and notify the background
+    //page that the content page has recieved the navigation message
+    console.log('Got nav msg of: ' + nav);
+    if (nav !== "") {
+        //notify background page of recieved go back message
+        chrome.runtime.sendMessage({req: "gotNavMsg"}, function(response) {
+            console.log('Executing: ' + nav);
+            if (nav === 'forward') {
+                window.history.forward();
+            } else if (nav === 'back') {
+                window.history.back();
+            }
+        });
     }
+}, 100);//run pull request every 100ms
+
+function setNavStatus(status) {
+    nav = status;
 }

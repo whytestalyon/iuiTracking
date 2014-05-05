@@ -15,8 +15,9 @@ window.onload = function() {
     });
 };
 
+var pingInterval;
 function pingStats() {
-    window.setInterval(function() {
+    pingInterval = window.setInterval(function() {
         chrome.runtime.getBackgroundPage(function(backgroundWindow) {
             var stats = backgroundWindow.getStats();
             updateCalcMessage(stats);
@@ -111,6 +112,14 @@ document.getElementById('stop').onclick = function() {
         //stop firing messages
         console.log('Stoping tracking...');
         backgroundWindow.stopTracking();
+        if(pingInterval !== undefined){
+            window.clearInterval(pingInterval);
+        }
+        //clear old canvas elements
+        var ic = document.getElementById('inputCanvas');
+        ic.parentNode.removeChild(ic);
+        ic = document.getElementById('overlayCanvas');
+        ic.parentNode.removeChild(ic);
     });
 };
 

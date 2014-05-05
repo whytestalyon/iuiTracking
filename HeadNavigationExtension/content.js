@@ -11,6 +11,20 @@
 //    }
 //    return true;
 //});
+
+/*
+ * Zoom range variables
+ */
+var minZoomFactor = 0.5, maxZoomFactor = 5;
+/*
+ * Navigation variables
+ */
+var navCntr = 5;
+
+/*
+ * Pull timer function for the script to check in with the background page
+ * @type @exp;window@call;setInterval
+ */
 var snyc = window.setInterval(function() {
     chrome.runtime.sendMessage({req: "zoom"}, function(response) {
 //        console.log("Got: " + JSON.stringify(response));
@@ -18,10 +32,7 @@ var snyc = window.setInterval(function() {
     });
 }, 100);
 
-/*
- * Zoom range variables
- */
-var minZoomFactor = 0.5, maxZoomFactor = 5;
+
 
 
 /**
@@ -32,7 +43,12 @@ var minZoomFactor = 0.5, maxZoomFactor = 5;
  * zoomed in/out to the maximum allowed levels), true otherwise
  */
 function xoomer(zoom_object) {
-    if (zoom_object && zoom_object.zoom_type !== 'none') {
+    //handle the nav request, prevent other operations until nav operation completes
+    if(navCntr < 0){
+        navCntr = 5;
+    }else if( navCntr < 5){
+        navCntr--;
+    }else if (zoom_object && zoom_object.zoom_type !== 'none') {
         var currentZoomIncrement = zoom_object.zoom_increment;
         var zoom_type = zoom_object.zoom_type;
         //grab the current zoom factor for the body
@@ -56,9 +72,11 @@ function xoomer(zoom_object) {
                 break;
             case "forward":
                 window.history.forward();
+                navCntr--;
                 break;
             case "back":
                 window.history.back();
+                navCntr--;
                 break;
             default:
                 return false;

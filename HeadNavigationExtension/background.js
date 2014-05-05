@@ -14,7 +14,7 @@
  */
 var avg_face_start_width = -1; //estimated in centimeters
 var start_cntr = 0;
-var face_couts = 15;
+var face_couts = 5;
 /*
  * Variables for tracking the zoom sensitivity of the extension
  */
@@ -23,7 +23,7 @@ var zoomInRatio = 1.15;
 /*
  * Variable for tracking Zoom speed
  */
-var currentZoomIncrement = 0.25;
+var currentZoomIncrement = 0.125;
 
 /*
  * Tracking status variables
@@ -119,11 +119,13 @@ var currentZoomlvl;
  * π and π/2 in the opposite direction.
  */
 var currentHeadAngle = Math.PI / 2;
-var goBackAngle = Math.PI / 3;
+var goBack = 1.7;//radians
 var goBackCounter = 0;
-var goForwardAngle = (2 * Math.PI) / 3;
+var goForward = 1.4;//radians
 var goForwardCounter = 0;
 var currentXpos = 0, currentYpos = 0;
+var zoomMinAngle = 1.48, zoomMaxAngle = 1.61;
+var navHold = 10;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas
@@ -139,48 +141,65 @@ document.addEventListener("facetrackingEvent", function(event) {
         overlayContext.translate(-event.x, -event.y);
     }
     currentHeadAngle = event.angle;
-    //check if we need to initialize the starting distance between users face and camera
-    //other wise determine if we need to zoom, or navigate arround
-    if (start_cntr < face_couts && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
-        avg_face_start_width += event.width;
-        start_cntr++;
-    } else if (start_cntr === face_couts) {
-        avg_face_start_width = (avg_face_start_width / face_couts);
-        start_cntr++;
+    //check if previous command was a navigation command, if so make sure it is
+    //held for a while so the pulling content script can recieve the message
+    if (currentZoomlvl
+            && currentZoomlvl.zoom_type
+            && (currentZoomlvl.zoom_type === 'forward' || currentZoomlvl.zoom_type === 'back')
+            && navHold > 0) {
+        navHold--;
     } else {
-        //get current face width
-        currentFaceWidth = event.width;
-        //calculate ratio of current user face size compared to starting face size size
-        faceWidthRatio = event.width / avg_face_start_width;
-        //determine if threshold for action has been met
-        var zoomType = "";
-        if (faceWidthRatio < zoomOutRatio && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
-            zoomType = 'zoom_out';
-        } else if (faceWidthRatio > zoomInRatio && currentHeadAngle < goForwardAngle && currentHeadAngle > goBackAngle) {
-            zoomType = 'zoom_in';
+        //reset Navigation Hold
+        navHold = 10;
+        //determine if zoom operation or navigation operation based on head angle
+        var zoomType = "none";
+        if (currentHeadAngle <= zoomMaxAngle && currentHeadAngle >= zoomMinAngle) {
+            //check if we need to initialize the starting distance between users face and camera
+            //other wise determine if we need to zoom, or navigate arround
+            if (start_cntr < face_couts) {
+                avg_face_start_width += event.width;
+                start_cntr++;
+            } else if (start_cntr === face_couts) {
+                avg_face_start_width = (avg_face_start_width / face_couts);
+                start_cntr++;
+            } else {
+                //get current face width
+                currentFaceWidth = event.width;
+                //calculate ratio of current user face size compared to starting face size size
+                faceWidthRatio = event.width / avg_face_start_width;
+                //determine if threshold for action has been met
+                if (faceWidthRatio < zoomOutRatio) {
+                    zoomType = 'zoom_out';
+                } else if (faceWidthRatio > zoomInRatio) {
+                    zoomType = 'zoom_in';
+                }
+            }
         } else {
-            zoomType = 'none';
+            //determine if we need to indicate that the browser should go back a page or
+            //forward a page
+            if (currentHeadAngle < goForward) {
+                goBackCounter = 0;
+                goForwardCounter++;
+            } else if (currentHeadAngle > goBack) {
+                goForwardCounter = 0;
+                goBackCounter++;
+            } else {
+                goBackCounter = 0;
+                goForwardCounter = 0;
+            }
+            //if the head has been held at the same angle for 500ms (20ms period
+            //for this event times the specified threshold of 25) then tell
+            //the browser page that it should navigate backwards or forwards
+            //depending on angle
+            if (goForwardCounter > 25) {
+                zoomType = "forward";
+            } else if (goBackCounter > 25) {
+                zoomType = "back";
+            }
         }
-        //determine if we need to indicate that the browser should go back a page or
-        //forward a page
-        if (currentHeadAngle > goForwardAngle) {
-            goBackCounter = 0;
-            goForwardCounter++;
-        } else if (currentHeadAngle < goBackAngle) {
-            goForwardCounter = 0;
-            goBackCounter++;
-        } else {
-            goBackCounter = 0;
-            goForwardCounter = 0;
-        }
-        if (goForwardCounter > 30){
-            zoomType = "forward"
-        }else if (goBackCounter > 30){
-            zoomType = "back"
-        }
+        //update zoom settings
         currentZoomlvl = {zoom_type: zoomType, zoom_increment: currentZoomIncrement};
     }
-
 }, true);
 
 function getStats() {

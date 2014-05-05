@@ -16,6 +16,7 @@ var avg_face_start_width = -1; //estimated in centimeters
 var start_cntr = 0;
 var face_couts = 5;
 var navCntr = -1;
+var navHold = false;
 /*
  * Variables for tracking the zoom sensitivity of the extension
  */
@@ -114,12 +115,14 @@ chrome.runtime.onMessage.addListener(
 //                    "from a content script:" + sender.tab.url :
 //                    "from the extension");
             if (request.req == "zoom") {
-                if (currentZoomlvl != undefined && currentZoomlvl.zoom_type === "back" || currentZoomlvl.zoom_type === "forward") {
+                if (currentZoomlvl != undefined && (currentZoomlvl.zoom_type === "back" || currentZoomlvl.zoom_type === "forward")) {
                     goBackCounter = 0;
                     goForwardCounter = 0;
                 }
                 sendResponse(currentZoomlvl);
-            } else if (request.req == "gotNavMsg") {
+            } else if (request.req == "gotNavMsg" && navHold) {
+                console.log('Got nav response!');
+                navHold = false;
                 navCntr = 50;//hold the tracker from doing anything for 1 second after navigating somewhere
                 //update zoom settings
                 currentZoomlvl = {zoom_type: 'none', zoom_increment: currentZoomIncrement};
@@ -165,7 +168,9 @@ document.addEventListener("facetrackingEvent", function(event) {
     currentHeadAngle = event.angle;
     //check if previous command was a navigation command, if so make sure it is
     //held for a while so the pulling content script can recieve the message
-    if (navCntr > 0) {
+    if (navHold) {
+        //do nothing till content script says it has recieved the message
+    } else if (navCntr > 0) {
         //do nothing until content script notifys that it go the message to navigate
         navCntr--;
     } else {
@@ -205,14 +210,16 @@ document.addEventListener("facetrackingEvent", function(event) {
                 goBackCounter = 0;
                 goForwardCounter = 0;
             }
-            //if the head has been held at the same angle for 500ms (20ms period
-            //for this event times the specified threshold of 25) then tell
+            //if the head has been held at the same angle for ~140ms (20ms period
+            //for this event times the specified threshold of 7) then tell
             //the browser page that it should navigate backwards or forwards
             //depending on angle
-            if (goForwardCounter > 25) {
+            if (goForwardCounter > 7) {
                 zoomType = "forward";
-            } else if (goBackCounter > 25) {
+                navHold = true;
+            } else if (goBackCounter > 7) {
                 zoomType = "back";
+                navHold = true;
             }
         }
         //update zoom settings

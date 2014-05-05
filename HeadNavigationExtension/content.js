@@ -2,6 +2,8 @@
  * Zoom range variables
  */
 var minZoomFactor = 0.5, maxZoomFactor = 5;
+var nav = "";
+
 
 /*
  * Pull timer function for the script to check in with the background page.
@@ -10,7 +12,6 @@ var minZoomFactor = 0.5, maxZoomFactor = 5;
  * @type @exp;window@call;setInterval
  */
 var snyc = window.setInterval(function() {
-    var nav = "";
     chrome.runtime.sendMessage({req: "zoom"}, function(response) {
         var currentZoomIncrement = response.zoom_increment;
         var zoom_type = response.zoom_type;
@@ -35,10 +36,12 @@ var snyc = window.setInterval(function() {
                 break;
             case "forward":
             case "back":
-                nav = zoom_type;
+                setNavStatus(zoom_type);
+                newZoomFactor = currentZoomFactor;
                 break;
             default:
-                return false;
+                newZoomFactor = currentZoomFactor;
+                break;
         }
         //reset boundaries if outside of max or minimum zoom factor
         if (newZoomFactor < minZoomFactor) {
@@ -47,21 +50,29 @@ var snyc = window.setInterval(function() {
             newZoomFactor = maxZoomFactor;
         }
         //update body zoom factor in DOM
-        console.log('New Zoom factor: ' + newZoomFactor);
-        document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
-        console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
+//        console.log('New Zoom factor: ' + newZoomFactor);
+        if (newZoomFactor !== currentZoomFactor) {
+            document.getElementsByTagName('body')[0].style.zoom = newZoomFactor;
+        }
+//        console.log('Old zoom: ' + currentZoomFactor + ", Current zoom: " + document.getElementsByTagName('body')[0].style.zoom);
     });
-    
+
     //check if we need to navigate through browser history and notify the background
     //page that the content page has recieved the navigation message
-    if( nav !== ""){
+    console.log('Got nav msg of: ' + nav);
+    if (nav !== "") {
         //notify background page of recieved go back message
         chrome.runtime.sendMessage({req: "gotNavMsg"}, function(response) {
-            if(nav === 'forward'){
+            console.log('Executing: ' + nav);
+            if (nav === 'forward') {
                 window.history.forward();
-            }else if(nav === 'back'){
+            } else if (nav === 'back') {
                 window.history.back();
             }
         });
     }
 }, 100);//run pull request every 100ms
+
+function setNavStatus(status) {
+    nav = status;
+}

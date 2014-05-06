@@ -150,7 +150,7 @@ var goBackCounter = 0;
 var goForward = 1.4;//radians
 var goForwardCounter = 0;
 var currentXpos = 0, currentYpos = 0;
-var zoomMinAngle = 1.48, zoomMaxAngle = 1.61;
+var zoomMinAngle = 1.48, zoomMaxAngle = 1.65;
 
 document.addEventListener("facetrackingEvent", function(event) {
     //display the head tracking as a green box on the canvas

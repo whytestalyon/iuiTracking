@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
     "name": "Head Navigator",
-    "description": "This extension allows a user to navigate any page, including zooming in and out, using their head.",
-    "version": "1.0",
+    "description": "Allows a user to zoom in/out and navigate browsing history using their head.",
+    "version": "0.2",
     "background": {
         "page": "background.html"
     },
